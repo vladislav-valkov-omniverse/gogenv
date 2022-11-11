@@ -1,4 +1,4 @@
-module github.com/vladislav-valkov-omniverse/go-env-generator
+module github.com/vladislav-valkov-omniverse/gogenv
 
 go 1.19
 
