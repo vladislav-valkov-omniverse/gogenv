@@ -2,16 +2,14 @@ package main
 
 import (
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/dave/jennifer/jen"
-	"os/exec"
-
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-	"gopkg.in/yaml.v2"
 )
 
 type Template struct {
@@ -39,11 +37,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cmd := exec.Command("go install", "github.com/spf13/viper")
-	_, err = cmd.Output()
-	if err != nil {
-		log.Fatal(err)
-	}
+	//cmd := exec.Command("go get", "github.com/spf13/viper")
+	//_, err = cmd.Output()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 	file := jen.NewFile("appconfig")
 	file.Comment("This file is generated automatically.")
