@@ -1,4 +1,4 @@
-module appconfig-generator
+module github.com/vladislav-valkov-omniverse/go-env-generator
 
 go 1.19
 
