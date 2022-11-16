@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/dave/jennifer/jen"
 	"golang.org/x/text/cases"
@@ -95,7 +96,7 @@ func GenerateStruct(file *jen.File, variables []Variable, envFile string) {
 	// Generate methods
 	for _, variable := range variables {
 		file.Func().
-			Params(jen.Id("a").Id("*appConfig")).Id(variable.Name).
+			Params(jen.Id("this").Id("*appConfig")).Id(variable.Name).
 			Params().
 			Id(variable.Type).
 			Block(jen.Return(jen.Id("a").Dot("Field" + variable.Name)))
