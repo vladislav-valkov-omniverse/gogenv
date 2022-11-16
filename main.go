@@ -99,7 +99,7 @@ func GenerateStruct(file *jen.File, variables []Variable, envFile string) {
 			Params(jen.Id("this").Id("*appConfig")).Id(variable.Name).
 			Params().
 			Id(variable.Type).
-			Block(jen.Return(jen.Id("a").Dot("Field" + variable.Name)))
+			Block(jen.Return(jen.Id("this").Dot("Field" + variable.Name)))
 	}
 
 	// Generate configLoader
