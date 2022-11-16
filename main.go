@@ -110,7 +110,7 @@ func GenerateStruct(file *jen.File, variables []Variable, envFile string) {
 		Block(
 			jen.Qual("github.com/spf13/viper", "AddConfigPath").Call(jen.Id("path")),
 			jen.Qual("github.com/spf13/viper", "SetConfigName").Call(jen.Lit(strings.Split(envFile, ".")[0])),
-			jen.Qual("github.com/spf13/viper", "SetConfigType").Call(jen.Lit(strings.Split(envFile, ".")[0])),
+			jen.Qual("github.com/spf13/viper", "SetConfigType").Call(jen.Lit(strings.Split(envFile, ".")[1])),
 			jen.Qual("github.com/spf13/viper", "AutomaticEnv").Call(),
 			jen.Id("_").Op("=").Qual("github.com/spf13/viper", "ReadInConfig").Call(),
 			jen.Id("this").Dot("setDefaults").Call(),
