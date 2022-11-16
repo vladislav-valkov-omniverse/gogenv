@@ -45,6 +45,8 @@ func main() {
 	//}
 
 	file := jen.NewFile("appconfig")
+	file.HeaderComment(`//go:generate echo "Running Gogenv`)
+	file.HeaderComment(`//go:generate gogenv`)
 	file.Comment("This file is generated automatically.")
 	file.Line()
 
