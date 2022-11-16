@@ -104,7 +104,7 @@ func GenerateStruct(file *jen.File, variables []Variable, envFile string) {
 
 	// Generate configLoader
 	file.Func().
-		Params(jen.Id("a").Id("*appConfig")).Id("loadViperConfig").
+		Params(jen.Id("this").Id("*appConfig")).Id("loadViperConfig").
 		Params(jen.Id("path").String()).
 		Params(jen.Id("err").Error()).
 		Block(
@@ -113,8 +113,8 @@ func GenerateStruct(file *jen.File, variables []Variable, envFile string) {
 			jen.Qual("github.com/spf13/viper", "SetConfigType").Call(jen.Lit(strings.Split(envFile, ".")[0])),
 			jen.Qual("github.com/spf13/viper", "AutomaticEnv").Call(),
 			jen.Id("_").Op("=").Qual("github.com/spf13/viper", "ReadInConfig").Call(),
-			jen.Id("a").Dot("setDefaults").Call(),
-			jen.Id("err").Op("=").Id("viper").Dot("Unmarshal").Call(jen.Id("a")),
+			jen.Id("this").Dot("setDefaults").Call(),
+			jen.Id("err").Op("=").Id("viper").Dot("Unmarshal").Call(jen.Id("this")),
 
 			jen.If(jen.Err().Op("!=").Nil()).Block(
 				jen.Err().Op("=").Qual("fmt", "Errorf").Call(jen.Lit("[AppConfig] Failed to load environment"))),
@@ -131,7 +131,7 @@ func GenerateStruct(file *jen.File, variables []Variable, envFile string) {
 	}
 
 	file.Func().
-		Params(jen.Id("a").Id("*appConfig")).Id("setDefaults").Params().
+		Params(jen.Id("this").Id("*appConfig")).Id("setDefaults").Params().
 		Block(defaults...)
 
 }
