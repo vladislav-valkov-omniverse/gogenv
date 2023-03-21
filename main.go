@@ -61,7 +61,7 @@ func main() {
 	}
 
 	file := jen.NewFile(t.PackageName)
-	file.HeaderComment("//go:generate go run github.com/vladislav-valkov-omniverse/gogenv && go fmt .")
+	file.HeaderComment("//go:generate go run gogenv && go fmt .")
 	file.HeaderComment("This file is generated automatically.")
 	file.Line()
 
