@@ -8,7 +8,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/dave/jennifer/jen"
+	. "github.com/dave/jennifer/jen"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -60,7 +60,7 @@ func main() {
 		t.ConfigName = "AppConfig"
 	}
 
-	file := jen.NewFile(t.PackageName)
+	file := NewFile(t.PackageName)
 	file.HeaderComment("//go:generate gogenv && go fmt .")
 	file.HeaderComment("This file is generated automatically.")
 	file.Line()
@@ -82,47 +82,57 @@ func main() {
 	fmt.Println("Schema generated successfully!")
 }
 
-func GenerateImports(file *jen.File, imports []Import) {
-	opt := jen.Options{
+func GenerateImports(file *File, imports []Import) {
+	opt := Options{
 		Open:      "(",
 		Close:     ")",
 		Separator: "",
 		Multi:     true,
 	}
 
-	ids := []jen.Code{}
+	ids := []Code{}
 	for _, v := range imports {
-		ids = append(ids, jen.Id(v.Alias+" \""+v.Path+"\""))
+		ids = append(ids, Id(v.Alias+" \""+v.Path+"\""))
 	}
 
 	file.Id("import").Custom(opt, ids...)
 }
 
-func GenerateInterface(file *jen.File, variables []Variable, t Template) {
-	methods := make([]jen.Code, len(variables))
+func GenerateInterface(file *File, variables []Variable, t Template) {
+	methods := make([]Code, len(variables))
 	for _, variable := range variables {
 
-		methods = append(methods, jen.Id(variable.Name).Params().Id(variable.Type))
+		methods = append(methods, Id(variable.Name).Params().Id(variable.Type))
 	}
 
 	file.Type().Id("I" + t.ConfigName).Interface(methods...)
 }
 
-func GenerateConfigConstructor(file *jen.File, t Template) {
-	file.Func().Id("New"+t.ConfigName).Params(jen.Id("path").Id("string")).Params(jen.Id("I"+t.ConfigName), jen.Error()).Block(
-		jen.Var().Id("v").Op("=").Id("&appConfig").Block(),
-		jen.Err().Op(":=").Id("v").Dot("loadViperConfig").Call(jen.Id("path")),
-		jen.If(jen.Err().Op("!=").Nil()).Block(
-			jen.Return(jen.List(jen.Nil(), jen.Err()))),
-		jen.Return(jen.List(jen.Id("v"), jen.Nil())),
+func GenerateConfigConstructor(file *File, t Template) {
+	file.Func().Id("New"+t.ConfigName).Params(Id("path").Id("string")).Params(Id("I"+t.ConfigName), Error()).Block(
+
+		Var().Id("v").Op("=").Id("&appConfig").Block(
+			Id("viper").Op(":").Qual("github.com/spf13/viper", "New").Call(),
+			Op(","),
+		),
+
+		Err().Op(":=").Id("v").Dot("loadViperConfig").Call(Id("path")),
+		If(Err().Op("!=").Nil()).Block(
+			Return(List(Nil(), Err()))),
+		Return(List(Id("v"), Nil())),
 	)
 }
 
-func GenerateStruct(file *jen.File, variables []Variable, t Template) {
-	structFields := make([]jen.Code, len(variables))
+func GenerateStruct(file *File, variables []Variable, t Template) {
+	structFields := make([]Code, len(variables))
+
+	{
+		viperField := Id("viper").Op("*").Qual("github.com/spf13/viper", "Viper")
+		structFields = append(structFields, viperField)
+	}
 
 	for _, variable := range variables {
-		field := jen.Id("Field" + variable.Name).Id(variable.Type).Tag(map[string]string{
+		field := Id("Field" + variable.Name).Id(variable.Type).Tag(map[string]string{
 			"mapstructure": variable.RawName,
 		})
 		structFields = append(structFields, field)
@@ -133,42 +143,42 @@ func GenerateStruct(file *jen.File, variables []Variable, t Template) {
 	// Generate methods
 	for _, variable := range variables {
 		file.Func().
-			Params(jen.Id("this").Id("*appConfig")).Id(variable.Name).
+			Params(Id("this").Id("*appConfig")).Id(variable.Name).
 			Params().
 			Id(variable.Type).
-			Block(jen.Return(jen.Id("this").Dot("Field" + variable.Name)))
+			Block(Return(Id("this").Dot("Field" + variable.Name)))
 	}
 
 	// Generate configLoader
 	file.Func().
-		Params(jen.Id("this").Id("*appConfig")).Id("loadViperConfig").
-		Params(jen.Id("path").String()).
-		Params(jen.Id("err").Error()).
+		Params(Id("this").Id("*appConfig")).Id("loadViperConfig").
+		Params(Id("path").String()).
+		Params(Id("err").Error()).
 		Block(
-			jen.Qual("github.com/spf13/viper", "AddConfigPath").Call(jen.Id("path")),
-			jen.Qual("github.com/spf13/viper", "SetConfigName").Call(jen.Lit(strings.Split(t.EnvFile, ".")[0])),
-			jen.Qual("github.com/spf13/viper", "SetConfigType").Call(jen.Lit(strings.Split(t.EnvFile, ".")[1])),
-			jen.Qual("github.com/spf13/viper", "AutomaticEnv").Call(),
-			jen.Id("_").Op("=").Qual("github.com/spf13/viper", "ReadInConfig").Call(),
-			jen.Id("this").Dot("setDefaults").Call(),
-			jen.Id("err").Op("=").Id("viper").Dot("Unmarshal").Call(jen.Id("this")),
+			Id("this").Dot("viper").Dot("AddConfigPath").Call(Id("path")),
+			Id("this").Dot("viper").Dot("SetConfigName").Call(Lit(strings.Split(t.EnvFile, ".")[0])),
+			Id("this").Dot("viper").Dot("SetConfigType").Call(Lit(strings.Split(t.EnvFile, ".")[1])),
+			Id("this").Dot("viper").Dot("AutomaticEnv").Call(),
+			Id("_").Op("=").Qual("github.com/spf13/viper", "ReadInConfig").Call(),
+			Id("this").Dot("setDefaults").Call(),
+			Id("err").Op("=").Id("viper").Dot("Unmarshal").Call(Id("this")),
 
-			jen.If(jen.Err().Op("!=").Nil()).Block(
-				jen.Err().Op("=").Qual("fmt", "Errorf").Call(jen.Lit(fmt.Sprintf("[%s] Failed to load environment", t.ConfigName)))),
-			jen.Return(),
+			If(Err().Op("!=").Nil()).Block(
+				Err().Op("=").Qual("fmt", "Errorf").Call(Lit(fmt.Sprintf("[%s] Failed to load environment", t.ConfigName)))),
+			Return(),
 		)
 
 	// Generate setDefault
 
-	defaults := make([]jen.Code, len(variables))
+	defaults := make([]Code, len(variables))
 
 	for _, defaultVariable := range variables {
-		defaults = append(defaults, jen.Qual("github.com/spf13/viper", "SetDefault").
-			Call(jen.List(jen.Lit(defaultVariable.RawName), jen.Lit(defaultVariable.Default))))
+		defaults = append(defaults, Id("this").Dot("viper").Dot("SetDefault").
+			Call(List(Lit(defaultVariable.RawName), Lit(defaultVariable.Default))))
 	}
 
 	file.Func().
-		Params(jen.Id("this").Id("*appConfig")).Id("setDefaults").Params().
+		Params(Id("this").Id("*appConfig")).Id("setDefaults").Params().
 		Block(defaults...)
 
 }
