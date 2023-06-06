@@ -112,8 +112,7 @@ func GenerateConfigConstructor(file *File, t Template) {
 	file.Func().Id("New"+t.ConfigName).Params(Id("path").Id("string")).Params(Id("I"+t.ConfigName), Error()).Block(
 
 		Var().Id("v").Op("=").Id("&appConfig").Block(
-			Id("viper").Op(":").Qual("github.com/spf13/viper", "New").Call(),
-			Op(","),
+			Id("viper").Op(":").Qual("github.com/spf13/viper", "New").Call().Op(","),
 		),
 
 		Err().Op(":=").Id("v").Dot("loadViperConfig").Call(Id("path")),
