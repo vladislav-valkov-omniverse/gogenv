@@ -158,9 +158,9 @@ func GenerateStruct(file *File, variables []Variable, t Template) {
 			Id("this").Dot("viper").Dot("SetConfigName").Call(Lit(strings.Split(t.EnvFile, ".")[0])),
 			Id("this").Dot("viper").Dot("SetConfigType").Call(Lit(strings.Split(t.EnvFile, ".")[1])),
 			Id("this").Dot("viper").Dot("AutomaticEnv").Call(),
-			Id("_").Op("=").Qual("github.com/spf13/viper", "ReadInConfig").Call(),
+			Id("_").Op("=").Id("this").Dot("viper").Dot("ReadInConfig").Call(),
 			Id("this").Dot("setDefaults").Call(),
-			Id("err").Op("=").Id("viper").Dot("Unmarshal").Call(Id("this")),
+			Id("err").Op("=").Id("this").Dot("viper").Dot("Unmarshal").Call(Id("this")),
 
 			If(Err().Op("!=").Nil()).Block(
 				Err().Op("=").Qual("fmt", "Errorf").Call(Lit(fmt.Sprintf("[%s] Failed to load environment", t.ConfigName)))),
