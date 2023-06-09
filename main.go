@@ -109,13 +109,13 @@ func GenerateInterface(file *File, variables []Variable, t Template) {
 }
 
 func GenerateConfigConstructor(file *File, t Template) {
-	file.Func().Id("New"+t.ConfigName).Params(Id("path").Id("string")).Params(Id("I"+t.ConfigName), Error()).Block(
+	file.Func().Id("New"+t.ConfigName).Params(Id("paths").Id("...string")).Params(Id("I"+t.ConfigName), Error()).Block(
 
 		Var().Id("v").Op("=").Id("&appConfig").Block(
 			Id("viper").Op(":").Qual("github.com/spf13/viper", "New").Call().Op(","),
 		),
 
-		Err().Op(":=").Id("v").Dot("loadViperConfig").Call(Id("path")),
+		Err().Op(":=").Id("v").Dot("loadViperConfig").Call(Id("paths...")),
 		If(Err().Op("!=").Nil()).Block(
 			Return(List(Nil(), Err()))),
 		Return(List(Id("v"), Nil())),
@@ -151,10 +151,12 @@ func GenerateStruct(file *File, variables []Variable, t Template) {
 	// Generate configLoader
 	file.Func().
 		Params(Id("this").Id("*appConfig")).Id("loadViperConfig").
-		Params(Id("path").String()).
+		Params(Id("paths").Id("...string")).
 		Params(Id("err").Error()).
 		Block(
-			Id("this").Dot("viper").Dot("AddConfigPath").Call(Id("path")),
+			For(List(Id("_"), Id("path")).Op(":=").Range().Id("paths")).Block(
+				Id("this").Dot("viper").Dot("AddConfigPath").Call(Id("path")),
+			),
 			Id("this").Dot("viper").Dot("SetConfigName").Call(Lit(strings.Split(t.EnvFile, ".")[0])),
 			Id("this").Dot("viper").Dot("SetConfigType").Call(Lit(strings.Split(t.EnvFile, ".")[1])),
 			Id("this").Dot("viper").Dot("AutomaticEnv").Call(),
